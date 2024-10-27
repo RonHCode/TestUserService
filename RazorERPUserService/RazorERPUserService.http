@@ -1,0 +1,59 @@
+@RazorERPUserService_HostAddress = http://localhost:5015
+@jwt_token = Bearer Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1NmM0YzY4MC1kMmE5LTQ4ZTAtYjdiZi0xNDFkODZiZGQ4MWQiLCJzdWIiOiJyb24iLCJ1bmlxdWVfbmFtZSI6InJvbiIsInJvbGUiOiJBZG1pbiIsIkNvbXBhbnlJRCI6IjEiLCJuYmYiOjE3Mjk5MDcxOTAsImV4cCI6MTcyOTkxMDc5MCwiaWF0IjoxNzI5OTA3MTkwLCJpc3MiOiJSYXpvckVSUFVzZXJTZXJ2aWNlIiwiYXVkIjoiUmF6b3JFUlBVc2VyU2VydmljZSJ9.Yi6ptYqH6KCIqy0tjcfGcK-8FLztqV_OR10vRnqVEnc
+
+GET {{RazorERPUserService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+
+### 1. Login to Get JWT Token
+
+POST {{RazorERPUserService_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "ron",
+    "password": "ron"
+}
+
+### 2. Get All Users 
+
+GET {{RazorERPUserService_HostAddress}}/api/users
+Authorization:  Bearer {{jwt_token}}
+
+### 3. Get User by ID (Authorized Request)
+
+GET {{RazorERPUserService_HostAddress}}/api/users/1
+Authorization: Bearer {{jwt_token}}
+
+### 4. Create a New User (Only Admin Role)
+
+POST {{RazorERPUserService_HostAddress}}/api/users
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+    "username": "newuser",
+    "password": "password123",
+    "role": "User",
+    "companyId": 1
+}
+
+### 5. Update a User (Only Admin Role)
+
+PUT {{RazorERPUserService_HostAddress}}/api/users/1
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+    "username": "updateduser",
+    "password": "newpassword123",
+    "role": "Admin"
+}
+
+### 6. Delete a User (Only Admin Role)
+
+DELETE {{RazorERPUserService_HostAddress}}/api/users/1
+Authorization: Bearer {{jwt_token}}
+

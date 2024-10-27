@@ -1,0 +1,31 @@
+﻿USE [RazorERP_UsersDB]
+GO
+
+/****** Object:  Table [dbo].[Companies]    Script Date: 10/28/2024 2:15:55 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Companies](
+	[CompanyID] [int] IDENTITY(1,1) NOT NULL,
+	[CompanyName] [varchar](100) NOT NULL,
+	[Description] [varchar](100) NULL,
+	[DateCreated] [datetime] NOT NULL,
+	[DateUpdated] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[CompanyID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[CompanyName] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Companies] ADD  DEFAULT (getdate()) FOR [DateCreated]
+GO
+
+
