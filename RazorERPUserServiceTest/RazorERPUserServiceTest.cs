@@ -9,6 +9,11 @@ using RazorERPUserService.DTOs;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using RazorERPUserService.Repositories;
+using AutoMapper;
+using RazorERPUserService.Mappings;
+using Microsoft.Extensions.Logging;
+using Serilog.Core;
+using Serilog;
 
 
 namespace RazorERPUserServiceTest
@@ -16,12 +21,30 @@ namespace RazorERPUserServiceTest
     public class UsersControllerTests
     {
         private readonly Mock<IUserService> _userServiceMock;
+        private readonly IMapper _mapper;
+        private readonly ILogger<UsersController> _logger;
         private readonly UsersController _controller;
 
         public UsersControllerTests()
         {
+            //add the user mapping for use at unittest
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile(new UserMapping());
+            });
+            _mapper = config.CreateMapper();
             _userServiceMock = new Mock<IUserService>();
-            _controller = new UsersController(_userServiceMock.Object);
+
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddSerilog(new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .CreateLogger());
+            });
+
+            _logger = loggerFactory.CreateLogger<UsersController>();
+
+            _controller = new UsersController(_userServiceMock.Object, _mapper, _logger);
 
             // Mock a ClaimsPrincipal with a role claim
             var userClaims = new List<Claim>

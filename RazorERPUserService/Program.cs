@@ -5,8 +5,11 @@ using RazorERPUserService.Data;
 using RazorERPUserService.MiddleWare;
 using RazorERPUserService.Repositories;
 using RazorERPUserService.Services;
+using RazorERPUserService.Mappings;
 using System.Security.Claims;
 using System.Text;
+using Serilog;
+
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -14,9 +17,17 @@ var configuration = builder.Configuration;
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAutoMapper(typeof(UserMapping).Assembly);
 
 //AddScoped is preferred, especially if DapperContext will be managing active connections
 builder.Services.AddScoped<DapperContext>();
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration) // Reads settings from appsettings.json
+    .Enrich.FromLogContext()
+    .CreateLogger();
+builder.Host.UseSerilog();
 
 // IdentityServer - If implementing IdentityServer to handle JWT authentication
 // it involves configuring IdentityServer to handle client credentials, API resources, and scopes,

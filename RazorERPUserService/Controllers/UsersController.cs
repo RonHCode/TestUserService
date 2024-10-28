@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using RazorERPUserService.Data;
 using RazorERPUserService.DTOs;
 using RazorERPUserService.Models;
+using RazorERPUserService.Mappings;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using RazorERPUserService.Services;
+using AutoMapper;
 
 namespace RazorERPUserService.Controllers
 {
@@ -16,32 +18,26 @@ namespace RazorERPUserService.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IMapper _mapper;
+        private readonly ILogger<UsersController> _logger;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, IMapper mapper, ILogger<UsersController> logger)
         {
             _userService = userService;
+            _mapper = mapper;
+            _logger = logger;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {
+            _logger.LogInformation("Getting all users");
+
             var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
             var CompanyID = int.Parse(User.FindFirst("CompanyID")?.Value ?? "0");
 
             var users = await _userService.GetUsersAsync(CompanyID, includeAdmins: currentUserRole == "Admin");
-
-            // Map the data from the User entity to the UserDTO before returning it.
-            var userDtos = users.Select(user => new UserDTO
-            {
-                Id = user.UserID,
-                Username = user.Username,
-                Email = user.Email,
-                Role = user.Role,
-                CompanyID = user.CompanyID,
-                Password = "***"
-            });
-
-            Console.WriteLine("Fetched users count: " + users.Count());
+            var userDtos = _mapper.Map<List<UserDTO>>(users);
 
             return Ok(userDtos);
         }
@@ -50,23 +46,16 @@ namespace RazorERPUserService.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
+            _logger.LogInformation($"Getting user by ID {id}");
+
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
             {
-                return NotFound(); ;
+                _logger.LogWarning($"NotFound user ID {id}");
+                return NotFound();
             }
 
-            var userDto = new UserDTO
-            {
-                Id = user.UserID,
-                Username = user.Username,
-                Email = user.Email,
-                Role = user.Role,
-                CompanyID = user.CompanyID,
-                DateCreated = user.DateCreated,
-                DateUpdated = user.DateUpdated,
-                Password = "***"
-            };
+            var userDto = _mapper.Map<UserDTO>(user);
 
             return Ok(userDto);
         }
@@ -76,7 +65,7 @@ namespace RazorERPUserService.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDTO createUserDTO)
         {
-            var x = User;
+            _logger.LogInformation($"Creating new user {createUserDTO.Username}");
 
             var newUser = new User
             {
@@ -103,25 +92,31 @@ namespace RazorERPUserService.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UserDTO userDTO)
         {
+            _logger.LogInformation($"Updating user {userDTO.Username}");
+
             if (userDTO == null || userDTO.Id != id)
             {
+                _logger.LogError($"BadRequest - User does not match {id}");
                 return BadRequest();
             }
 
-            var updateUser = new User
-            {
-                UserID = userDTO.Id,
-                Username = userDTO.Username,
-                Role = userDTO.Role,
-                Email = userDTO.Email,                
-                CompanyID = userDTO.CompanyID,
-                DateUpdated = DateTime.Now
-                //Password_Hash = userDTO.Password, // Changing of password should be in a separate method
-            };
+            //var updateUser = new User
+            //{
+            //    UserID = userDTO.Id,
+            //    Username = userDTO.Username,
+            //    Role = userDTO.Role,
+            //    Email = userDTO.Email,                
+            //    CompanyID = userDTO.CompanyID,
+            //    //Password_Hash = userDTO.Password, // Changing of password should be in a separate method
+            //};
+
+            var updateUser = _mapper.Map<User>(userDTO);
+
 
             var result = await _userService.UpdateUserAsync(updateUser);
             if (!result)
             {
+                _logger.LogWarning($"NotFound user ID {id}");
                 return NotFound();
             }
 
@@ -132,9 +127,12 @@ namespace RazorERPUserService.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(int id)
         {
+            _logger.LogInformation($"Updating user id {id}");
+
             var result = await _userService.DeleteUserAsync(id);
             if (!result)
             {
+                _logger.LogWarning($"NotFound user ID {id}");
                 return NotFound();
             }
 

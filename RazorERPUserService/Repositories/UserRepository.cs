@@ -73,7 +73,7 @@ namespace RazorERPUserService.Repositories
                     user.Email,
                     user.Role,
                     user.CompanyID,
-                    user.DateUpdated,
+                    DateTime.Now,
                     user.UserID
                 });
 
